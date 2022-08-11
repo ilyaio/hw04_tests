@@ -11,11 +11,7 @@ class PostModelTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='auth')
-        cls.group = Group.objects.create(
-            title='Тестовая группа',
-            slug='Тестовый слаг',
-            description='Тестовое описание',
-        )
+
         cls.post = Post.objects.create(
             author=cls.user,
             text='Тестовый пост',
@@ -40,7 +36,19 @@ class PostModelTest(TestCase):
                 self.assertEqual(
                     post._meta.get_fieled(field).verbose_name, expected_value)
 
-    def verbose_name_post(self):
+
+class GroupModelTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='auth')
+        cls.group = Group.objects.create(
+            title='Тестовая группа',
+            slug='Тестовый слаг',
+            description='Тестовое описание',
+        )
+
+    def verbose_name_group(self):
         """verbose_name в полях модели Group совпадает с ожидаемым"""
         group = PostModelTest.group
         field_verboses = {

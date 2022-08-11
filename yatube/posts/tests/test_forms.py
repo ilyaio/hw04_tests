@@ -1,17 +1,17 @@
 import shutil
 import tempfile
+from http import HTTPStatus
 
-from posts.forms import PostForm
-from posts.models import Post, Group
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
-from django.contrib.auth import get_user_model
-
+from posts.models import Group, Post
 
 User = get_user_model()
 
-
+# Для ревьювера: Я сохраняю комментариий, чтобы потом самому вспомнить,
+# что делает данный код
 # Создаем временную папку для медиа-файлов;
 # на момент теста медиа папка будет переопределена
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -38,7 +38,6 @@ class PostCreateFormTests(TestCase):
             text='Тестовый пост',
             group=cls.group,
         )
-        cls.form = PostForm()
 
     @classmethod
     def tearDownClass(cls):
@@ -58,8 +57,7 @@ class PostCreateFormTests(TestCase):
         post_count = Post.objects.count()
 
         form_fields = {
-            'author': PostCreateFormTests.user,
-            'text': 'Тестовый текст',
+            'text': PostCreateFormTests.post.text,
             'group': PostCreateFormTests.group.pk,
         }
         # Отправляем POST-запрос
@@ -70,7 +68,8 @@ class PostCreateFormTests(TestCase):
         )
         # Проверяем, сработал ли редирект
         self.assertRedirects(response, reverse(
-            'posts:profile', kwargs={'username': 'test_user'}))
+            'posts:profile',
+            kwargs={'username': f'{PostCreateFormTests.user.username}'}))
 
         # Проверяем, увеличилось ли число постов
         self.assertEqual(Post.objects.count(), post_count + 1)
@@ -79,7 +78,7 @@ class PostCreateFormTests(TestCase):
         self.assertTrue(
             Post.objects.filter(
                 group=PostCreateFormTests.group.pk,
-                text='Тестовый текст',
+                text=PostCreateFormTests.post.text,
             ).exists()
         )
 
@@ -89,7 +88,6 @@ class PostCreateFormTests(TestCase):
         post_count = Post.objects.count()
 
         form_fields = {
-            'author': PostCreateFormTests.user,
             'text': '',
             'group': PostCreateFormTests.group.pk,
         }
@@ -112,7 +110,7 @@ class PostCreateFormTests(TestCase):
             'Обязательное поле.'
         )
         # Проверим, что ничего не упало и страница отдаёт код 200
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_edit_post(self):
         """Валидная форма создает запись в Post."""
@@ -120,7 +118,6 @@ class PostCreateFormTests(TestCase):
         post_count = Post.objects.count()
 
         form_fields = {
-            'author': PostCreateFormTests.user,
             'text': 'Тестовый текст изм',
             'group': PostCreateFormTests.group.pk,
         }
@@ -136,13 +133,13 @@ class PostCreateFormTests(TestCase):
             'posts:post_detail',
             kwargs={'post_id': f'{PostCreateFormTests.post.id}'}))
 
-        # Проверяем, что не увеличилось ли число постов
+        # Проверяем, что не увеличилось число постов
         self.assertEqual(Post.objects.count(), post_count)
 
         # Проверяем, что запись изменилась
         self.assertTrue(
             Post.objects.filter(
                 group=PostCreateFormTests.group.pk,
-                text='Тестовый текст изм',
+                text=form_fields['text'], id=PostCreateFormTests.post.id,
             ).exists()
         )

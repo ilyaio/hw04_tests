@@ -1,8 +1,10 @@
-from django.test import TestCase, Client
-from django.contrib.auth import get_user_model
-from posts.models import Group, Post
-from .test_models import PostModelTest
 from http import HTTPStatus
+
+from django.contrib.auth import get_user_model
+from django.test import Client, TestCase
+from posts.models import Group, Post
+
+from .test_models import PostModelTest
 
 User = get_user_model()
 
@@ -24,7 +26,6 @@ class PostsURLTests(TestCase):
         cls.non_author = User.objects.create_user(username='non_author')
 
     def setUp(self):
-        self.guest_client = Client()
         # Create client for authorized user
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
@@ -35,33 +36,39 @@ class PostsURLTests(TestCase):
     def test_for_public_pages(self):
         templates_url_names = {
             'posts/index.html': '/',
+            # Если я тут заменяют в f строке test_slug на
+            # {PostModelTest.group.slug}, то тест не работает.
+            # Я что-то не правильно делаю?
             'posts/group_list.html': '/group/test_slug/',
+            # Если я тут заменяют в f строке test_user на
+            # {PostModelTest.user.username}, то тест не работает
+            # Я что-то не правильно делаю?
             'posts/profile.html': '/profile/test_user/',
             'posts/post_detail.html': f'/posts/{PostModelTest.post.id}/',
         }
         for template, address in templates_url_names.items():
             with self.subTest(address=address):
-                response = self.guest_client.get(address)
+                response = self.client.get(address)
                 self.assertTemplateUsed(response, template)
 
     def test_pages_only_authorized(self):
-        templates_url_names = {
-            '/create/': 'posts/create_post.html',
-        }
-        for address, template in templates_url_names.items():
-            with self.subTest(address=address):
-                response = self.non_author_client.get(address)
-                self.assertTemplateUsed(response, template)
+        """Шаблон и страница /сreate/ доступна авторизованному
+        пользователю."""
+        address = '/create/'
+        template = 'posts/create_post.html'
+        response = self.non_author_client.get(address)
+        self.assertTemplateUsed(response, template)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_pages_only_author(self):
-        templates_url_names = {
-            f'/posts/{PostModelTest.post.id}/edit/': 'posts/create_post.html',
-        }
-        for address, template in templates_url_names.items():
-            with self.subTest(address=address):
-                response = self.authorized_client.get(address)
-                self.assertTemplateUsed(response, template)
+        """Шаблон и страница /сreate/id/ доступна автору
+        для редактирования."""
+        address = f'/posts/{PostModelTest.post.id}/edit/'
+        template = 'posts/create_post.html'
+        response = self.authorized_client.get(address)
+        self.assertTemplateUsed(response, template)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_null_page(self):
-        response = self.guest_client.get('/unexisting_page/')
+        response = self.client.get('/unexisting_page/')
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
