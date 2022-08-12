@@ -36,14 +36,8 @@ class PostsURLTests(TestCase):
     def test_for_public_pages(self):
         templates_url_names = {
             'posts/index.html': '/',
-            # Если я тут заменяют в f строке test_slug на
-            # {PostModelTest.group.slug}, то тест не работает.
-            # Я что-то не правильно делаю?
-            'posts/group_list.html': '/group/test_slug/',
-            # Если я тут заменяют в f строке test_user на
-            # {PostModelTest.user.username}, то тест не работает
-            # Я что-то не правильно делаю?
-            'posts/profile.html': '/profile/test_user/',
+            'posts/group_list.html': f'/group/{PostsURLTests.group.slug}/',
+            'posts/profile.html': f'/profile/{PostsURLTests.user.username}/',
             'posts/post_detail.html': f'/posts/{PostModelTest.post.id}/',
         }
         for template, address in templates_url_names.items():

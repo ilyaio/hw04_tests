@@ -26,26 +26,24 @@ class PostPagesTests(TestCase):
         )
 
     def setUp(self):
-        # Создаем авторизованный клиент
         self.authorized_client = Client()
         self.authorized_client.force_login(PostPagesTests.user)
 
-    # Проверяем используемые шаблоны
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
-        # Собираем в словарь пары "имя_html_шаблона: reverse(name)"
         templates_pages_names = {
             reverse('posts:index'): 'posts/index.html',
             (reverse('posts:group_list', kwargs={
-                'slug': 'test_slug'})):
+                'slug': PostPagesTests.group.slug})):
             'posts/group_list.html',
-            (reverse('posts:profile', kwargs={'username': 'test_user'})):
+            (reverse('posts:profile', kwargs={
+                'username': PostPagesTests.user.username})):
             'posts/profile.html',
             (reverse('posts:post_detail',
-             kwargs={'post_id': f'{PostPagesTests.post.id}'})):
+             kwargs={'post_id': PostPagesTests.post.id})):
             'posts/post_detail.html',
             (reverse('posts:post_edit',
-             kwargs={'post_id': f'{PostPagesTests.post.id}'})):
+             kwargs={'post_id': PostPagesTests.post.id})):
             'posts/create_post.html',
             reverse('posts:post_create'): 'posts/create_post.html',
 
@@ -64,7 +62,6 @@ class PostsViewsTest(TestCase):
     TOTAL_POSTS_WITH_GROUP_P2 = TOTAL_POSTS_WITH_GROUP - settings.POST_PER_PAGE
     POSTS_ON_PAGE_2 = 8
 
-    # Здесь создаются фикстуры: клиент и 13 тестовых записей.
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -75,7 +72,6 @@ class PostsViewsTest(TestCase):
         )
 
         cls.user = User.objects.create_user(username='test_user')
-        # Создаем посты без Группы
         for post in range(PostsViewsTest.TOTAL_POSTS_WITH_GROUP):
             cls.post = Post.objects.create(
                 author=cls.user,
@@ -83,8 +79,6 @@ class PostsViewsTest(TestCase):
                 group=PostsViewsTest.group,
 
             )
-
-        # Создаем посты без Группы
         for post in range(PostsViewsTest.TOTAL_POSTS_WITH_GROUP,
                           PostsViewsTest.TOTAL_POSTS_FOR_T):
             cls.post = Post.objects.create(
@@ -92,44 +86,44 @@ class PostsViewsTest(TestCase):
                 text=f'Тестовая запись #{post}',)
 
     def setUp(self):
-        # Создаем авторизованный клиент
         self.authorized_client = Client()
         self.authorized_client.force_login(PostsViewsTest.user)
 
-    def compare_two_text(self, arg_1, arg_2):
+    def compare_two_fields(self, arg_1, arg_2):
+        # Комментарий для ревьювера, я попробовал сделать третий агрумент в
+        # функции в виде метода для аргумента, но когда ввожу третий армгумент
+        # и потом в функуции пишу arg_1.arg_3, где arg_3 будет равен text, то
+        # функция не работает
         """функция для сверки текста двух постов."""
-        return self.assertEqual(arg_1.text, arg_2.text)
+        return (self.assertEqual(arg_1.text, arg_2.text),
+                self.assertEqual(arg_1.id, arg_2.id))
 
     def test_post_index_correct_context(self):
         """Список постов переданный через контекст в index корректен"""
         response = self.authorized_client.get(reverse('posts:index'))
         first_post = response.context['page_obj'][0]
-        # Проверка: количество постов на первой странице равно 10.
         self.assertEqual(len(
             response.context['page_obj']), settings.POST_PER_PAGE)
-        # Шаблон index сформирован с корректной паджинацией для
-        # следующих 8 постов главной страницы.
         response_2 = self.authorized_client.get(reverse
                                                 ('posts:index') + '?page=2')
         self.assertEqual(len(
             response_2.context['page_obj']), self.POSTS_ON_PAGE_2)
         self.assertEqual(first_post.author.id, self.post.author.id)
-        self.compare_two_text(first_post, self.post)
-        self.assertEqual(first_post.id, self.post.id)
+        self.compare_two_fields(first_post, self.post)
 
     def test_first_group_page_contains_ten_records(self):
         """Шаблон group_list сформирован с корректной паджинацией для
         первых 10 постов группы."""
         response = self.authorized_client.get(reverse('posts:group_list',
-                                              kwargs={'slug': 'test_slug'}))
-        # Проверка: количество постов на первой странице равно 10.
+                                              kwargs={'slug':
+                                                      PostPagesTests.group.slug
+                                                      }))
         self.assertEqual(len(
             response.context['page_obj']), settings.POST_PER_PAGE)
 
     def test_second_group_page_contains_four_records(self):
         """Шаблон group_list сформирован с корректной паджинацией для\
         следующих 3 постов группы."""
-        # Проверка: на второй странице должно быть 3 постов.
         response = self.client.get(reverse('posts:group_list',
                                    kwargs={'slug': 'test_slug'}) + '?page=2')
         self.assertEqual(len(response.context['page_obj']),
@@ -138,10 +132,10 @@ class PostsViewsTest(TestCase):
     def test_first_profile_page_contains_ten_records(self):
         """Шаблон profile сформирован с корректной паджинацией для
         первых 10 постов группы."""
-        response = self.authorized_client.get(reverse('posts:profile',
-                                              kwargs={'username': 'test_user'})
-                                              )
-        # Проверка: количество постов на первой странице равно 10.
+        response = (
+            self.authorized_client.get(
+                reverse('posts:profile',
+                        kwargs={'username': PostPagesTests.user.username})))
         self.assertEqual(len(
             response.context['page_obj']), settings.POST_PER_PAGE)
 
@@ -149,9 +143,10 @@ class PostsViewsTest(TestCase):
         """Шаблон group_list сформирован с корректной паджинацией для\
         следующих 4 постов группы."""
         # Проверка: на второй странице должно быть 8 постов.
-        response = self.client.get(reverse('posts:profile',
-                                   kwargs={'username': 'test_user'})
-                                   + '?page=2')
+        response = self.client.get(
+            reverse('posts:profile',
+                    kwargs={'username':
+                            PostPagesTests.user.username}) + '?page=2')
         self.assertEqual(len(
             response.context['page_obj']), self.POSTS_ON_PAGE_2)
 
@@ -162,14 +157,12 @@ class PostsViewsTest(TestCase):
         response = (
             self.authorized_client.get(reverse('posts:post_detail',
                                        kwargs={'post_id':
-                                               f'{self.TOTAL_POSTS_WITH_GROUP}'
-                                               })))
+                                               self.TOTAL_POSTS_WITH_GROUP})))
         object = response.context['post']
         post_group = object.group
         post_author = object.author
         post_count = response.context['post_count']
-        self.assertEqual(object.id, post_for_test.id)
-        self.compare_two_text(object, post_for_test)
+        self.compare_two_fields(object, post_for_test)
         self.assertEqual(post_group.id, post_for_test.group.id)
         self.assertEqual(post_author.id, post_for_test.author.id)
         self.assertEqual(post_count, self.TOTAL_POSTS_FOR_T)
@@ -180,10 +173,10 @@ class PostsViewsTest(TestCase):
         response = (
             self.authorized_client.
             get(reverse('posts:post_edit',
-                kwargs={'post_id': f'{self.TOTAL_POSTS_WITH_GROUP}'})))
+                kwargs={'post_id': self.TOTAL_POSTS_WITH_GROUP})))
         first_object = response.context['post']
         post_group_0 = first_object.group
-        self.compare_two_text(first_object, post_for_test)
+        self.compare_two_fields(first_object, post_for_test)
         self.assertEqual(post_group_0.id, post_for_test.group.id)
 
     def test_create_post_page_show_correct_context(self):
@@ -212,9 +205,9 @@ class PostsViewsTest(TestCase):
         url = (
             reverse('posts:index'),
             reverse('posts:group_list',
-                    kwargs={'slug': 'test_slug'}),
+                    kwargs={'slug': PostPagesTests.group.slug}),
             reverse('posts:profile',
-                    kwargs={'username': 'test_user'}),
+                    kwargs={'username': PostPagesTests.user.username}),
         )
         for adress in url:
             with self.subTest(adress=adress):
@@ -223,5 +216,5 @@ class PostsViewsTest(TestCase):
                 post_author = first_object.author
                 post_group = first_object.group
                 self.assertEqual(post_author.id, self.post_last.author.id)
-                self.compare_two_text(first_object, self.post_last)
+                self.compare_two_fields(first_object, self.post_last)
                 self.assertEqual(post_group.id, self.post_last.group.id)

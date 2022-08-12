@@ -36,6 +36,12 @@ class PostModelTest(TestCase):
                 self.assertEqual(
                     post._meta.get_fieled(field).verbose_name, expected_value)
 
+    def test_object_name_is_text_field(self):
+        """__str__  post - это строчка с содержимым post.text."""
+        post = PostModelTest.post
+        expected_object_name = post.text
+        self.assertEqual(expected_object_name, str(post))
+
 
 class GroupModelTest(TestCase):
     @classmethod
@@ -60,3 +66,9 @@ class GroupModelTest(TestCase):
             with self.subTest(field=field):
                 self.assertEqual(
                     group._meta.get_fieled(field).verbose_name, expected_value)
+
+    def test_group_name_is_text_field(self):
+        """__str__  post - это строчка с содержимым post.text."""
+        group = GroupModelTest.group
+        expected_object_name = group.title
+        self.assertEqual(expected_object_name, str(group))
