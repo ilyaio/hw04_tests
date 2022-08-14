@@ -7,6 +7,9 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from posts.models import Group, Post
+# Комментарий для ревьювера: Я использую isort . перед каждым коммитом по
+# комментариям прошлого ревьювера, чтобы imports были по PEP8. isort все-таки
+# не правильно это делает?
 
 User = get_user_model()
 
@@ -33,8 +36,6 @@ class PostCreateFormTests(TestCase):
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        # Модуль shutil - библиотека Python с удобными инструментами
-        # Метод shutil.rmtree удаляет директорию и всё её содержимое
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
@@ -99,15 +100,12 @@ class PostCreateFormTests(TestCase):
             data=form_fields,
             follow=True
         )
-        # Проверяем, сработал ли редирект
         self.assertRedirects(response, reverse(
             'posts:post_detail',
             kwargs={'post_id': PostCreateFormTests.post.id}))
 
-        # Проверяем, что не увеличилось число постов
         self.assertEqual(Post.objects.count(), post_count)
 
-        # Проверяем, что запись изменилась
         self.assertTrue(
             Post.objects.filter(
                 group=PostCreateFormTests.group.pk,

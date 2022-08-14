@@ -68,7 +68,7 @@ class GroupModelTest(TestCase):
                     group._meta.get_fieled(field).verbose_name, expected_value)
 
     def test_group_name_is_text_field(self):
-        """__str__  post - это строчка с содержимым post.text."""
+        """__str__  group - это строчка с содержимым group.title."""
         group = GroupModelTest.group
         expected_object_name = group.title
         self.assertEqual(expected_object_name, str(group))

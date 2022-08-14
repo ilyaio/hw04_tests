@@ -89,14 +89,12 @@ class PostsViewsTest(TestCase):
         self.authorized_client = Client()
         self.authorized_client.force_login(PostsViewsTest.user)
 
-    def compare_two_fields(self, arg_1, arg_2):
-        # Комментарий для ревьювера, я попробовал сделать третий агрумент в
-        # функции в виде метода для аргумента, но когда ввожу третий армгумент
-        # и потом в функуции пишу arg_1.arg_3, где arg_3 будет равен text, то
-        # функция не работает
-        """функция для сверки текста двух постов."""
+    def compare_two_posts(self, arg_1, arg_2):
+        """Функция для сверки двух постов по text, id, author_id
+        arg_1 - проверяемый post, arg_2 - ожидаемый пост"""
         return (self.assertEqual(arg_1.text, arg_2.text),
-                self.assertEqual(arg_1.id, arg_2.id))
+                self.assertEqual(arg_1.id, arg_2.id),
+                self.assertEqual(arg_1.author.id, arg_2.author.id))
 
     def test_post_index_correct_context(self):
         """Список постов переданный через контекст в index корректен"""
@@ -108,8 +106,7 @@ class PostsViewsTest(TestCase):
                                                 ('posts:index') + '?page=2')
         self.assertEqual(len(
             response_2.context['page_obj']), self.POSTS_ON_PAGE_2)
-        self.assertEqual(first_post.author.id, self.post.author.id)
-        self.compare_two_fields(first_post, self.post)
+        self.compare_two_posts(first_post, self.post)
 
     def test_first_group_page_contains_ten_records(self):
         """Шаблон group_list сформирован с корректной паджинацией для
@@ -162,7 +159,7 @@ class PostsViewsTest(TestCase):
         post_group = object.group
         post_author = object.author
         post_count = response.context['post_count']
-        self.compare_two_fields(object, post_for_test)
+        self.compare_two_posts(object, post_for_test)
         self.assertEqual(post_group.id, post_for_test.group.id)
         self.assertEqual(post_author.id, post_for_test.author.id)
         self.assertEqual(post_count, self.TOTAL_POSTS_FOR_T)
@@ -176,7 +173,7 @@ class PostsViewsTest(TestCase):
                 kwargs={'post_id': self.TOTAL_POSTS_WITH_GROUP})))
         first_object = response.context['post']
         post_group_0 = first_object.group
-        self.compare_two_fields(first_object, post_for_test)
+        self.compare_two_posts(first_object, post_for_test)
         self.assertEqual(post_group_0.id, post_for_test.group.id)
 
     def test_create_post_page_show_correct_context(self):
@@ -213,8 +210,6 @@ class PostsViewsTest(TestCase):
             with self.subTest(adress=adress):
                 response = self.authorized_client.get(adress)
                 first_object = response.context['page_obj'][0]
-                post_author = first_object.author
                 post_group = first_object.group
-                self.assertEqual(post_author.id, self.post_last.author.id)
-                self.compare_two_fields(first_object, self.post_last)
+                self.compare_two_posts(first_object, self.post_last)
                 self.assertEqual(post_group.id, self.post_last.group.id)
