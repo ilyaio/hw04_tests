@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 
 from posts.models import Group, Post
-
 from .test_models import PostModelTest
 
 User = get_user_model()
