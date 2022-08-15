@@ -156,7 +156,6 @@ class PostsViewsTest(TestCase):
                                                self.TOTAL_POSTS_WITH_GROUP})))
         object = response.context['post']
         post_group = object.group
-        post_author = object.author
         post_count = response.context['post_count']
         self.compare_two_posts(object, post_for_test)
         self.assertEqual(post_group.id, post_for_test.group.id)
