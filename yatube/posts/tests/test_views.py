@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.test import Client, TestCase
 from django.urls import reverse
+
 from posts.models import Group, Post
 
 User = get_user_model()
@@ -46,9 +47,7 @@ class PostPagesTests(TestCase):
              kwargs={'post_id': PostPagesTests.post.id})):
             'posts/create_post.html',
             reverse('posts:post_create'): 'posts/create_post.html',
-
         }
-# Проверяем, что при обращении к name вызывается соответствующий HTML-шаблон
         for reverse_name, template in templates_pages_names.items():
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name)
@@ -161,7 +160,6 @@ class PostsViewsTest(TestCase):
         post_count = response.context['post_count']
         self.compare_two_posts(object, post_for_test)
         self.assertEqual(post_group.id, post_for_test.group.id)
-        self.assertEqual(post_author.id, post_for_test.author.id)
         self.assertEqual(post_count, self.TOTAL_POSTS_FOR_T)
 
     def test_edit_post_page_show_correct_context(self):
