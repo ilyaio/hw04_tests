@@ -155,7 +155,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Add the CACHE tool
 CASHES = {
-    'default':{
+    'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
