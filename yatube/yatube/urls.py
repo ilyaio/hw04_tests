@@ -26,3 +26,5 @@ urlpatterns = [
     path('group/', include('posts.urls', namespace='group')),
     path('about/', include('about.urls', namespace='about')),
 ]
+
+handler404 = 'core.views.page_not_found'

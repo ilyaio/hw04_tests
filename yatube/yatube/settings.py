@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'sorl.thumbnail',
 ]
 
 MIDDLEWARE = [
@@ -144,3 +145,17 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 # CONSTANTS
 POST_PER_PAGE = 10
+
+# Change the default page of error 403 to custom page
+CSRF_FAILURE_VIEW = 'core.views.csrf_failure'
+
+# Create folder to uploaded media
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Add the CACHE tool
+CASHES = {
+    'default':{
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}

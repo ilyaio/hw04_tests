@@ -95,6 +95,11 @@ class PostsViewsTest(TestCase):
                 self.assertEqual(arg_1.id, arg_2.id),
                 self.assertEqual(arg_1.author.id, arg_2.author.id))
 
+    def compare_group_two_posts(self, arg_1, arg_2):
+        """Функция для сверки группы двух постов arg_1 - проверяемый post,
+        arg_2 - ожидаемый пост"""
+        return (self.assertEqual(arg_1.group.id, arg_2.group.id))
+
     def test_post_index_correct_context(self):
         """Список постов переданный через контекст в index корректен"""
         response = self.authorized_client.get(reverse('posts:index'))
@@ -155,10 +160,9 @@ class PostsViewsTest(TestCase):
                                        kwargs={'post_id':
                                                self.TOTAL_POSTS_WITH_GROUP})))
         object = response.context['post']
-        post_group = object.group
         post_count = response.context['post_count']
         self.compare_two_posts(object, post_for_test)
-        self.assertEqual(post_group.id, post_for_test.group.id)
+        self.compare_group_two_posts(object, post_for_test)
         self.assertEqual(post_count, self.TOTAL_POSTS_FOR_T)
 
     def test_edit_post_page_show_correct_context(self):
@@ -169,9 +173,8 @@ class PostsViewsTest(TestCase):
             get(reverse('posts:post_edit',
                 kwargs={'post_id': self.TOTAL_POSTS_WITH_GROUP})))
         first_object = response.context['post']
-        post_group_0 = first_object.group
         self.compare_two_posts(first_object, post_for_test)
-        self.assertEqual(post_group_0.id, post_for_test.group.id)
+        self.compare_group_two_posts(first_object, post_for_test)
 
     def test_create_post_page_show_correct_context(self):
         """Шаблон create_post(edit) сформирован с правильным контекстом."""
@@ -207,6 +210,5 @@ class PostsViewsTest(TestCase):
             with self.subTest(adress=adress):
                 response = self.authorized_client.get(adress)
                 first_object = response.context['page_obj'][0]
-                post_group = first_object.group
                 self.compare_two_posts(first_object, self.post_last)
-                self.assertEqual(post_group.id, self.post_last.group.id)
+                self.compare_group_two_posts(first_object, self.post_last)

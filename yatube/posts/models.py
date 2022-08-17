@@ -1,5 +1,9 @@
+# from tabnanny import verbose
 from django.contrib.auth import get_user_model
 from django.db import models
+
+from core.models import CreatedModel
+
 
 User = get_user_model()
 
@@ -34,6 +38,48 @@ class Post(models.Model):
         related_name='posts',
         verbose_name='Группа',
         help_text='Группа, к которой будет относиться пост')
+
+    image = models.ImageField(
+        'Картинка',
+        upload_to='posts/',
+        blank=True
+    )
+
+    class Meta:
+        ordering = ('-pub_date',)
+        verbose_name = 'Пост'
+        verbose_name_plural = 'Посты'
+
+    def __str__(self) -> str:
+        # выводим текст поста
+        return self.text[:15]
+
+
+class Comment(CreatedModel):
+    class Meta:
+        ordering = ('-created',)
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
+
+    text = models.TextField(
+        'Текст комментария',
+        help_text='Введите текст поста'
+    )
+
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Автор')
+
+    post = models.ForeignKey(
+        Post,
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Комментарий',
+        help_text='Комментарий к посту')
 
     def __str__(self) -> str:
         # выводим текст поста
