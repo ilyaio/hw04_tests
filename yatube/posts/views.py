@@ -32,7 +32,8 @@ def group_posts(request, slug):
     # Метод .filter позволяет ограничить поиск по критериям.
     # Это аналог добавления
     # условия WHERE group_id = {group_id}
-    posts = get_list_or_404(Post.objects.order_by('-pub_date'), group=group)
+    # posts = get_list_or_404(Post.objects.order_by('-pub_date'), group=group)
+    posts = Post.objects.order_by('-pub_date').filter(group=group)
     page_obj = get_page_context(posts, request)
     template = 'posts/group_list.html'
     context = {
