@@ -30,7 +30,7 @@
                             {{ error }}
                         </div>
                         {% endfor %}        
-                        <form method="post" action={% if is_edit %} 
+                        <form method="post" enctype="multipart/form-data" action={% if is_edit %} 
                             {% url 'posts:post_edit' post.id %}
                             {% else %}
                             {% url 'posts:post_create' %}>
