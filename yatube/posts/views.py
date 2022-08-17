@@ -1,6 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import (get_object_or_404, redirect,
-                              render, get_list_or_404)
+from django.shortcuts import get_object_or_404, redirect, render
 # from django.views.decorators.cache import cache_page
 from posts.utils.paginator import get_page_context
 
